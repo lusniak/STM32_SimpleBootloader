@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +47,7 @@ unsigned char __attribute__((section(".myBufSectionRAM"))) buf_ram[128];
 unsigned char __attribute__((section(".myBufSectionFLASH"))) buf_flash[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
 #define LOCATE_FUNC __attribute__((section(".mysection")))
+#define FLASH_APP_ADDR 0x8008000
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -55,6 +56,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void LOCATE_FUNC Blink(uint32_t delayticks);
+void goToApplication(void);
 
 static void (*Functions[])(uint32_t delayticks) =
 {
@@ -70,6 +72,31 @@ void LOCATE_FUNC Blink(uint32_t delayticks)
 	HAL_Delay(delayticks);
 }
 
+void goToApplication(void)
+{
+	uint32_t JumpAddress;
+	void (*Jump_To_Application)(void);
+	printf("BOOTLOADER Start \r\n");
+
+	/* Check if there is something installed in the app flash region */
+	if(((*(uint32_t*) FLASH_APP_ADDR) & 0x2FFE0000) == 0x20000000)
+	{
+		printf("APP Start ... \r\n");
+		HAL_Delay(100);
+		//jump to the application
+		JumpAddress = *(uint32_t*) (FLASH_APP_ADDR + 4); // address of Reset_Handler in app
+		Jump_To_Application = (void*)JumpAddress;
+		//initialize stack pointer
+		__set_MSP(*(uint32_t*)FLASH_APP_ADDR);
+		Jump_To_Application();
+	}
+	else
+	{
+		//there is no application installed
+		printf("No APP found \r\n");
+	}
+}
+
 void __attribute__((__section__(".RamFunc"))) TurnOnLED(GPIO_PinState PinState)
 {
 	if(PinState != GPIO_PIN_RESET)
@@ -80,7 +107,17 @@ void __attribute__((__section__(".RamFunc"))) TurnOnLED(GPIO_PinState PinState)
 	{
 		LD3_GPIO_Port->BRR = (uint32_t)LD3_Pin;
 	}
+}
 
+int _write(int file, char *ptr, int len)
+{
+	int DataIdx;
+
+	for(DataIdx=0; DataIdx<len; DataIdx++)
+	{
+		HAL_UART_Transmit(&huart2, (uint8_t *)ptr++, 1, 100);
+	}
+	return len;
 }
 /* USER CODE END 0 */
 
@@ -125,7 +162,8 @@ int main(void)
     /* USER CODE END WHILE */
 	  //Blink(500);
 	  //TurnOnLED(GPIO_PIN_SET);
-	  Functions[0](100);
+	  //Functions[0](100);
+	  goToApplication();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
