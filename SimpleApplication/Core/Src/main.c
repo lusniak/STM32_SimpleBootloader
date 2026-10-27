@@ -46,7 +46,7 @@ UART_HandleTypeDef huart2;
 unsigned char __attribute__((section(".myBufSectionRAM"))) buf_ram[128];
 //unsigned char __attribute__((section(".myBufSectionFLASH"))) buf_flash[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-//#define LOCATE_FUNC __attribute__((section(".mysection")))
+#define LOCATE_FUNC __attribute__((section(".mysection")))
 #define FLASH_APP_ADDR 0x8008000
 /* USER CODE END PV */
 
@@ -55,22 +55,29 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void Blink(uint32_t delayticks);
+//void Blink(uint32_t delayticks);
 void goToApplication(void);
 
-static void (*Functions[])(uint32_t delayticks) =
-{
-		Blink
-};
+//static void (*Functions[])(uint32_t delayticks) =
+//{
+//		Blink
+//};
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void Blink(uint32_t delayticks)
+struct BootLoaderAPI
 {
-	HAL_GPIO_TogglePin(LD3_GPIO_Port,LD3_Pin);
-	HAL_Delay(delayticks);
-}
+	void (*Blink)(uint32_t delayticks);
+	void (*TurnOn)(void);
+	void (*TurnOff)(void);
+};
+
+//void Blink(uint32_t delayticks)
+//{
+//	HAL_GPIO_TogglePin(LD3_GPIO_Port,LD3_Pin);
+//	HAL_Delay(delayticks);
+//}
 
 
 void __attribute__((__section__(".RamFunc"))) TurnOnLED(GPIO_PinState PinState)
@@ -105,7 +112,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	struct BootLoaderAPI* api = (struct BootLoaderAPI*) 0x0800C000;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -140,6 +147,7 @@ int main(void)
 	  //TurnOnLED(GPIO_PIN_SET);
 	  //Functions[0](100);
 	  printf("App Running \r\n");
+	  api->Blink(200);
 	  HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }

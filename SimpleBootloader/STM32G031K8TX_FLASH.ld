@@ -45,8 +45,8 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 8K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 32K
-  MY_MEMORY (rx) : ORIGIN = 0x08008000, LENGTH = 32K
+  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 16K
+  MY_MEMORY (rx) : ORIGIN =  0x0800C000, LENGTH = 16K
 }
 
 /* Sections */
@@ -70,6 +70,11 @@ SECTIONS
   {
   	KEEP(*(.myBufSectionFLASH))
   } > FLASH
+  
+  .API_SHARED  0x0800C000 :
+  {
+  	KEEP(*(.API_SHARED))
+  } > MY_MEMORY
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :

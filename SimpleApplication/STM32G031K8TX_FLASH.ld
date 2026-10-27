@@ -45,8 +45,8 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 8K
-  FLASH    (rx)    : ORIGIN = 0x8008000,   LENGTH = 32K
-  /*MY_MEMORY (rx) : ORIGIN = 0x08008000, LENGTH = 32K*/
+  FLASH    (rx)    : ORIGIN = 0x8008000,   LENGTH = 16K
+  MY_MEMORY (rx) : ORIGIN = 0x0800C000, LENGTH = 16K
 }
 
 /* Sections */
@@ -88,16 +88,16 @@ SECTIONS
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
   
-  /*.mysection :
+  .mysection :
   {
   . = ALIGN(4);
   __mysection_start__ = .;
   *(.mysection*)
   __mysection_end__ = .;
-  } > MY_MEMORY*/
+  } > MY_MEMORY
   
   /* check if MY_MEMORY usage exceeds MY_MEMORY size */
-  /*ASSERT(LENGTH(MY_MEMORY) >= (__mysection_end__ - __mysection_start__), "MY_MEMORY memory overflowed!")*/
+  ASSERT(LENGTH(MY_MEMORY) >= (__mysection_end__ - __mysection_start__), "MY_MEMORY memory overflowed!")
 
   /* Constant data into "FLASH" Rom type memory */
   .rodata :

@@ -48,6 +48,13 @@ unsigned char __attribute__((section(".myBufSectionFLASH"))) buf_flash[10] = { 0
 
 #define LOCATE_FUNC __attribute__((section(".mysection")))
 #define FLASH_APP_ADDR 0x8008000
+
+struct BootloaderSharedAPI
+{
+	void(*Blink)(uint32_t delayticks);
+	void(*TurnOn)(void);
+	void(*TurnOff)(void);
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,6 +63,9 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void LOCATE_FUNC Blink(uint32_t delayticks);
+void LOCATE_FUNC TurnOn(void);
+void LOCATE_FUNC TurnOff(void);
+
 void goToApplication(void);
 
 static void (*Functions[])(uint32_t delayticks) =
@@ -66,10 +76,27 @@ static void (*Functions[])(uint32_t delayticks) =
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+struct BootloaderSharedAPI api __attribute__((section(".API_SHARED"))) =
+{
+		Blink,
+		TurnOn,
+		TurnOff
+};
+
 void LOCATE_FUNC Blink(uint32_t delayticks)
 {
 	HAL_GPIO_TogglePin(LD3_GPIO_Port,LD3_Pin);
 	HAL_Delay(delayticks);
+}
+
+void LOCATE_FUNC TurnOn(void)
+{
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+}
+
+void LOCATE_FUNC TurnOff(void)
+{
+	HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
 }
 
 void goToApplication(void)
