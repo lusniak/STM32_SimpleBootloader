@@ -45,6 +45,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 unsigned char __attribute__((section(".myBufSectionRAM"))) buf_ram[128];
 unsigned char __attribute__((section(".myBufSectionFLASH"))) buf_flash[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+#define LOCATE_FUNC __attribute__((section(".mysection")))
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -52,12 +54,34 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
+void LOCATE_FUNC Blink(uint32_t delayticks);
 
+static void (*Functions[])(uint32_t delayticks) =
+{
+		Blink
+};
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void LOCATE_FUNC Blink(uint32_t delayticks)
+{
+	HAL_GPIO_TogglePin(LD3_GPIO_Port,LD3_Pin);
+	HAL_Delay(delayticks);
+}
 
+void __attribute__((__section__(".RamFunc"))) TurnOnLED(GPIO_PinState PinState)
+{
+	if(PinState != GPIO_PIN_RESET)
+	{
+		LD3_GPIO_Port->BSRR = (uint32_t)LD3_Pin;
+	}
+	else
+	{
+		LD3_GPIO_Port->BRR = (uint32_t)LD3_Pin;
+	}
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -99,7 +123,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  //Blink(500);
+	  //TurnOnLED(GPIO_PIN_SET);
+	  Functions[0](100);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
